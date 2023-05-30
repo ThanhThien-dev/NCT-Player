@@ -38,7 +38,7 @@
   
   .dashboard {
     padding: 16px 16px 14px;
-    background-image: linear-gradient( 45deg, rgb(65, 88, 208) 0%, rgb(200, 80, 192) 50%, rgb(255, 204, 112) 100% );
+    background-image: url('../img/background.gif');
     position: fixed;
     top: 0;
     width: 100%;
@@ -54,12 +54,12 @@
   }
   
   header h4 {
-    color: var(--primary-color);
+    color: #6adb79;
     font-size: 12px;
   }
   
   header h2 {
-    color: var(--text-color);
+    color: yellow;
     font-size: 20px;
   }
   
@@ -88,7 +88,7 @@
   }
   
   .control .btn {
-    color: #f2eded;
+    color: yellow;
     padding: 18px;
     font-size: 18px;
   }
@@ -117,11 +117,12 @@
     width: 100%;
     -webkit-appearance: none;
     height: 6px;
-    background: #d3d3d3;
+    background-image: linear-gradient( 45deg, rgb(220, 245, 1) 0%, rgb(0, 208, 255) 50%, rgb(6, 243, 17) 100% );
     outline: none;
     opacity: 0.7;
     -webkit-transition: 0.2s;
     transition: opacity 0.2s;
+    cursor: pointer;
   }
   
   .progress::-webkit-slider-thumb {
@@ -193,8 +194,10 @@
     font-size: 18px;
   }
 
-  .song .option i {
+  .song .option img {
     cursor: not-allowed;
+    width: 38px;
+    height: 38px;
   }
   
   #icon {

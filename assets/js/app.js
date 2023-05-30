@@ -109,7 +109,7 @@ const app = {
                             <p class="author">${song.single}</p>
                         </div>
                         <div class="option">
-                            <i class="fas fa-ellipsis-h"></i>
+                            <img src="https://static.thenounproject.com/png/868078-200.png" alt="Lyric">
                         </div>
                     </div>
                     `
