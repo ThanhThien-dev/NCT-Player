@@ -14,6 +14,7 @@
 const $ = document.querySelector.bind(document)
 const $$ = document.querySelectorAll.bind(document)
 
+// Lấy ra các elements trong DOM
 const cd = $('.cd')
 const playBtn = $('.btn-toggle-play')
 const player = $('.player')
@@ -26,15 +27,66 @@ const nextBtn = $('.btn-next')
 const randomBtn = $('.btn-random')
 const repeatBtn = $('.btn-repeat')
 const playlist = $('.playlist')
+const musicCurrentTime = $('.current-time')
+const musicDuration = $('.max-duration')
 const icon = document.getElementById("icon");
 
 const app = {
     currentIndex: 0,
     isPlaying: false,
     isRandom: false,
+    playedSongs: [],
     isRepeat: false,
 
     songs: [
+        {
+            name: 'Shape Of You',
+            single: 'Ed Sheeran',
+            path: './assets/music/ShapeOfYou.mp3',
+            image: './assets/img/ShapeOfYou.jpg'
+        },
+        {
+            name: 'Wellerman',
+            single: 'Nathan Evans',
+            path: './assets/music/Wellerman.mp3',
+            image: './assets/img/Wellerman.jpg'
+        },
+        {
+            name: 'Faded',
+            single: 'Alan Walker',
+            path: './assets/music/Faded.mp3',
+            image: './assets/img/Faded.jpg'
+        },
+        {
+            name: 'Attention',
+            single: 'Charlie puth',
+            path: './assets/music/Attention.mp3',
+            image: './assets/img/Attention.jpg'
+        },
+        {
+            name: 'Thunder',
+            single: 'Imagine dragons',
+            path: './assets/music/Thunder.mp3',
+            image: './assets/img/Thunder.jpg'
+        },
+        {
+            name: 'Believer',
+            single: 'Imagine dragons',
+            path: './assets/music/Believer.mp3',
+            image: './assets/img/Believer.jpg'
+        },
+        {
+            name: 'Nevada',
+            single: 'Vicetone ft Cozi Zuehlsdorff',
+            path: './assets/music/Nevada.mp3',
+            image: './assets/img/Nevada.jpg'
+        },
+        {
+            name: 'Despacito',
+            single: 'Luis Fonsi',
+            path: './assets/music/Despacito.mp3',
+            image: './assets/img/Despacito.jpg'
+        },
         {
             name: 'Ngày mai người ta lấy chồng',
             single: 'Thành Đạt',
@@ -97,8 +149,21 @@ const app = {
         },
     ],
 
+    // Hàm khởi tạo thời lượng bài hát
+    loadSongDurations: function () {
+        this.songs.forEach(song => {
+            const audio = new Audio(song.path)
+            audio.addEventListener('loadedmetadata', () => {
+                song.duration = audio.duration
+                this.render()
+            })
+        })
+    },
+
+    // Hàm hiển thị các phần tử trong playlist
     render: function () {
         const htmls = this.songs.map((song, index) => {
+            const duration = song.duration ? this.formatTime(song.duration) : '--:--'
             return `
                     <div class="song ${index === this.currentIndex ? 'active' : ''}" data-index="${index}">
                         <div class="thumb"
@@ -108,8 +173,8 @@ const app = {
                             <h3 class="title">${song.name}</h3>
                             <p class="author">${song.single}</p>
                         </div>
-                        <div class="option">
-                            <img src="https://static.thenounproject.com/png/868078-200.png" alt="Lyric">
+                        <div class="option active">
+                            <p class="song-duration">${duration}</p>
                         </div>
                     </div>
                     `
@@ -126,8 +191,25 @@ const app = {
         })
     },
 
+    // Hàm format thời gian hiển thị
+    formatTime: function (time) {
+        const minutes = Math.floor(time / 60)
+        const seconds = Math.floor(time % 60)
+        return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+    },
+
+    // Hàm load thông tin bài hát hiện tại
+    loadCurrentSong: function () {
+        heading.textContent = this.currentSong.name
+        cdThumb.style.backgroundImage = `url('${this.currentSong.image}')`
+        audio.src = this.currentSong.path
+
+        // Set tiêu đề Website thành tên bài hát và ca sĩ hiện tại
+        document.title = `${this.currentSong.name} - ${this.currentSong.single}`
+    },
+
     // Tạo hàm xử lý sự kiện
-    handleEvents: function () {
+    handleEvents: function (e) {
         const _this = this
         const cdWidth = cd.offsetWidth
 
@@ -202,7 +284,7 @@ const app = {
             _this.scrollToActiveSong()
         }
 
-        //Khi prev bài hát
+        // Khi prev bài hát
         prevBtn.onclick = function () {
             if (_this.isRandom) {
                 _this.randomSong()
@@ -238,29 +320,111 @@ const app = {
         // Xử lý sự kiện lắng nghe khi click vào playlist
         playlist.onclick = function (e) {
             const songNode = e.target.closest('.song:not(.active)')
-            if (songNode || e.target.closest('.option')) {
-                // Xử lý khi click vào song
-                if (songNode) {
-                    _this.currentIndex = Number(songNode.dataset.index)
-                    _this.loadCurrentSong()
-                    _this.render()
-                    audio.play()
-                }
-
-                // Xử lý khi click vào nút option
-                if (e.target.closest('.option')) {
-                    alert('Chức năng đang được bổ sung')
-                }
+            // Xử lý khi click vào song
+            if (songNode) {
+                _this.currentIndex = Number(songNode.dataset.index)
+                _this.loadCurrentSong()
+                _this.render()
+                audio.play()
             }
         }
+
+        // Hiển thị tổng thời gian bài hát trước khi đếm ngược (Playing)
+        audio.addEventListener('loadedmetadata', function () {
+            const duration = audio.duration
+            const minutes = Math.floor(duration / 60)
+            const seconds = Math.floor(duration % 60)
+            const formattedDuration = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+
+            // Lấy phần tử .song-duration của bài hát đang active
+            const songDurationElement = document.querySelector('.song.active .song-duration')
+            if (songDurationElement) {
+                songDurationElement.textContent = formattedDuration
+            }
+        })
+
+        // Đếm ngược thời gian bài hát ở Playlist
+        audio.addEventListener('timeupdate', function () {
+            const duration = audio.duration
+            const currentTime = audio.currentTime
+            const timeLeft = duration - currentTime
+            const minutes = Math.floor(timeLeft / 60)
+            const seconds = Math.floor(timeLeft % 60)
+            const formattedTimeLeft = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+            // Lấy phần tử .song-duration của bài hát đang active
+            const songDurationElement = document.querySelector('.song.active .song-duration')
+            if (songDurationElement) {
+                songDurationElement.textContent = formattedTimeLeft
+            }
+        })
+
+        // Cập nhật thanh progress-bar theo thời gian hiện tại của bài hát
+        audio.addEventListener('timeupdate', (e) => {
+            const currentTime = e.target.currentTime
+            const duration = e.target.duration
+
+            // Cập nhật tổng thời lượng bài hát
+            if (!isNaN(duration)) {
+                let totalMin = Math.floor(duration / 60)
+                let totalSec = Math.floor(duration % 60)
+                if (totalMin < 10) {
+                    totalMin = `0${totalMin}`
+                }
+                if (totalSec < 10) {
+                    totalSec = `0${totalSec}`
+                }
+                musicDuration.innerText = `${totalMin}:${totalSec}`
+            }
+
+            // Cập nhật thời gian hiện tại của bài hát
+            let currentMin = Math.floor(currentTime / 60)
+            let currentSec = Math.floor(currentTime % 60)
+            if (currentMin < 10) {
+                currentMin = `0${currentMin}`
+            }
+            if (currentSec < 10) {
+                currentSec = `0${currentSec}`
+            }
+            musicCurrentTime.innerText = `${currentMin}:${currentSec}`
+        })
+
+        // Cập nhật tổng thời lượng bài hát khi metadata được tải về
+        audio.addEventListener('loadedmetadata', (e) => {
+            const duration = e.target.duration
+
+            // Cập nhật tổng thời lượng bài hát
+            if (!isNaN(duration)) {
+                let totalMin = Math.floor(duration / 60)
+                let totalSec = Math.floor(duration % 60)
+                if (totalMin < 10) {
+                    totalMin = `0${totalMin}`
+                }
+                if (totalSec < 10) {
+                    totalSec = `0${totalSec}`
+                }
+                musicDuration.innerText = `${totalMin}:${totalSec}`
+            }
+        })
+
+        // Cập nhật thời gian còn lại của bài hát trong sự kiện timeupdate
+        audio.addEventListener('timeupdate', function () {
+            const duration = audio.duration
+            if (!isNaN(duration)) {
+                const currentTime = audio.currentTime
+                const timeLeft = duration - currentTime
+                const minutes = Math.floor(timeLeft / 60)
+                const seconds = Math.floor(timeLeft % 60)
+                const formattedTimeLeft = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+                // Cập nhật thời gian còn lại vào phần tử hiển thị tổng thời lượng của bài hát
+                musicDuration.innerText = formattedTimeLeft
+            } else {
+                // Hiển thị giá trị mặc định hoặc không hiển thị gì cả
+                musicDuration.innerText = '--:--'
+            }
+        })
     },
 
-    loadCurrentSong: function () {
-        heading.textContent = this.currentSong.name
-        cdThumb.style.backgroundImage = `url('${this.currentSong.image}')`
-        audio.src = this.currentSong.path
-    },
-
+    // Hàm xử lý nút next song
     nextSong: function () {
         this.currentIndex += 1
         if (this.currentIndex >= this.songs.length) {
@@ -269,6 +433,7 @@ const app = {
         this.loadCurrentSong()
     },
 
+    // Hàm xử lý nút prev song
     prevSong: function () {
         this.currentIndex--
         if (this.currentIndex < 0) {
@@ -279,10 +444,14 @@ const app = {
 
     // Hàm Random bài hát ngẫu nhiên không trùng với bài cũ
     randomSong: function () {
+        if (this.playedSongs.length === this.songs.length) {
+            this.playedSongs = []
+        }
         let newIndex
         do {
             newIndex = Math.floor(Math.random() * this.songs.length)
-        } while (this.currentIndex === newIndex)
+        } while (this.playedSongs.includes(newIndex))
+        this.playedSongs.push(newIndex)
         this.currentIndex = newIndex
         this.loadCurrentSong()
     },
@@ -307,6 +476,9 @@ const app = {
 
         // Tải thông tin bài hát đầu tiên khi chạy ứng dụng
         this.loadCurrentSong();
+
+        // Tải thông tin duration bài hát đầu tiên khi chạy ứng dụng
+        this.loadSongDurations()
 
         //Render playlist
         this.render();
